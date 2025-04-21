@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Riley Kraabel">
+    <meta name="course" content="CS3960 - Spring 2025, University of Utah">
+    <title>CS3960: GPT-DB Demo</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 1500px;
+            margin: auto;
+            padding: 40px;
+        }
+
+        textarea,
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h2> 
+        <!-- icon for the demo header -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-star" viewBox="0 0 16 16">
+            <path d="M7.84 4.1a.178.178 0 0 1 .32 0l.634 1.285a.18.18 0 0 0 .134.098l1.42.206c.145.021.204.2.098.303L9.42 6.993a.18.18 0 0 0-.051.158l.242 1.414a.178.178 0 0 1-.258.187l-1.27-.668a.18.18 0 0 0-.165 0l-1.27.668a.178.178 0 0 1-.257-.187l.242-1.414a.18.18 0 0 0-.05-.158l-1.03-1.001a.178.178 0 0 1 .098-.303l1.42-.206a.18.18 0 0 0 .134-.098z"/>
+            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
+        </svg> 
+        CS3960: Demonstrating GPT-DB: Generating Query-Specific and Customizable Code for SQL Processing with GPT-4 
+    </h2>
+    <h3> Demo By: Riley Kraabel </h3>
+
+    <!-- select dataset (concert or singer) -->
+    <label for="dataset">Select Dataset:</label>
+    <select id="dataset" required>
+        <option value="" disabled selected hidden>Select a dataset...</option>
+        <option value="concert">Concert Dataset</option>
+        <option value="singer">Singer Dataset</option>
+    </select>
+
+    <!-- enter SQL query, auto-populates based on dataset selection (can still enter new text though)-->
+    <label for="query">Enter SQL Query:</label>
+    <textarea id="query" rows="3" placeholder="SQL query will appear here..."></textarea>
+
+    <!-- enter query customizations -->
+    <label for="instructions">Natural Language Customization:</label>
+    <input type="text" id="instructions" placeholder="Enter any customizations here..">
+
+    <!-- generates prompt using js -->
+    <button onclick="generatePrompt()">Generate Code</button>
+
+
+
+    <!-- generated results section -->
+    <h3>
+        <!-- icon for the prompt results box -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+        </svg>
+        Prompt</h3>
+    <pre id="promptBox">Prompt will appear here...</pre>
+
+    <h3>
+        <!-- icon for the generated code box -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-right-text" viewBox="0 0 16 16">
+            <path d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2z"/>
+            <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6m0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+        </svg>
+        Generated Code</h3>
+    <pre id="codeBox">Generated code will appear here...</pre>
+
+    <h3>
+        <!-- icon for the simulated results output -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bar-chart-line" viewBox="0 0 16 16">
+            <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1zm1 12h2V2h-2zm-3 0V7H7v7zm-5 0v-3H2v3z"/>
+        </svg>
+        Simulated Result</h3>
+    <pre id="resultBox">Results will appear here...</pre>
+
+    <!-- custom js listeners -->
+    <script>
+        // when the user selects a dataset, auto-populate the SQL command below //
+        document.getElementById('dataset').addEventListener('change', function () {
+            const dataset = this.value;
+            let query = '';
+
+            if (dataset === 'concert') {
+                query = `SELECT year FROM concert GROUP BY year ORDER BY count(*) DESC LIMIT 1;`;
+            } else if (dataset === 'singer') {
+                query = `SELECT country FROM singer GROUP BY country ORDER BY count(*) DESC LIMIT 1;`;
+            }
+
+            document.getElementById('query').value = query;
+        });
+
+        // when the user selects 'generate code', produce the rest of the results //
+        function generatePrompt() {
+            const dataset = document.getElementById('dataset').value;
+            const sql = document.getElementById('query').value;
+            const instructions = document.getElementById('instructions').value;
+
+            // example database schema //
+            const schema = {
+                concert: "Table concert with columns 'concert_id','concert_name','theme','stadium_id','year', stored in 'concert.csv'.",
+                singer: "Table singer with columns 'singer_id','name','country','song_name','song_release_year','age','is_male', stored in 'singer.csv'."
+            };
+
+            // example, mock result //
+            const mockResult = {
+                concert: `year\n2018`,
+                singer: `name, country\nTaylor Swift, USA\nBad Bunny, Puerto Rico`
+            };
+
+            // ensure the user selected a dataset //
+            if (!schema[dataset]) {
+                alert("Please select a valid dataset.");
+                return;
+            }
+
+            // produce a "list of steps" the system took //
+            const processingSteps = `
+1. ${instructions}
+2. Load data for table '${dataset}'.
+3. Group rows by 'year'.
+4. Order by count descending.
+5. Limit to 1 row.
+6. Extract 'year'.
+7. Save result to 'result.csv'.
+`.trim();
+
+            // produce the 'prompt' section -- consists of the chosen dataset and the processing steps above //
+            const prompt = `"""
+${schema[dataset]}
+Processing steps:
+${processingSteps}
+"""`;
+
+            // initialize the code block, display the user's custom instructions //
+            let code = `# Instruction: ${instructions}\n`;
+
+            // user wants to use the pandas library for the output // 
+            if (instructions.toLowerCase().includes('use pandas')) {
+                code += `
+import pandas as pd
+
+df = pd.read_csv('${dataset}.csv')
+df_grouped = df.groupby('year').size().sort_values(ascending=False)
+df_top = df_grouped.head(1).reset_index()[['year']]
+df_top.to_csv('result.csv', index=False)
+                `.trim();
+            } 
+
+            // user wants every step logged for the output //
+            else if (instructions.toLowerCase().includes('log every step')) {
+                code += `
+import csv
+from collections import Counter
+
+# Step 1: Load data
+print("Step 1: Loading data from '${dataset}.csv'")
+with open('${dataset}.csv', 'r') as f:
+    reader = csv.DictReader(f)
+    rows = list(reader)
+print(f"Loaded {len(rows)} rows.")
+
+# Step 2: Extract 'year' column
+print("Step 2: Extracting 'year' values")
+years = [row['year'] for row in rows]
+print(f"Extracted years: {years[:5]}...")
+
+# Step 3: Count frequencies
+print("Step 3: Counting frequencies of each year")
+counts = Counter(years)
+print(f"Year counts: {counts}")
+
+# Step 4: Find most common year
+print("Step 4: Selecting most common year")
+most_common = counts.most_common(1)[0][0]
+print(f"Most common year: {most_common}")
+
+# Step 5: Write result to CSV
+print("Step 5: Writing result to 'result.csv'")
+with open('result.csv', 'w', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=['year'])
+    writer.writeheader()
+    writer.writerow({'year': most_common})
+print("Done.")
+                `.trim();
+            }
+  
+            // user does not define any custom instructions //
+            else {
+                code += `
+import csv
+from collections import Counter
+
+with open('${dataset}.csv', 'r') as f:
+    reader = csv.DictReader(f)
+    years = [row['year'] for row in reader]
+
+counts = Counter(years)
+most_common = counts.most_common(1)[0][0]
+
+with open('result.csv', 'w', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=['year'])
+    writer.writeheader()
+    writer.writerow({'year': most_common})
+                `.trim();
+            }   
+
+            // display the changes // 
+            document.getElementById('promptBox').innerText = prompt;
+            document.getElementById('codeBox').innerText = code;
+            document.getElementById('resultBox').innerText = mockResult[dataset];
+        }
+    </script>
+
+</body>
+
+</html>
